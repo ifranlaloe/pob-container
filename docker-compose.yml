@@ -16,16 +16,14 @@ services:
     environment:
       PUID: "1000"
       PGID: "1000"
-      TZ: "Europe/Amsterdam"
       TITLE: "Path of Building Desktop"
     volumes:
+      # Follow the Docker host's local timezone.
+      - /etc/localtime:/etc/localtime:ro
       # Linux desktop state and Wine prefix.
-      - ./config:/config
+      - ./.pob-container/config:/config
       # Host-visible, persistent PoB settings and saved build profiles.
-      - ./profiles:/profiles
+      - ./.pob-container/profiles:/profiles
       # PoB application files and in-app updates survive container replacement.
-      - pob-applications:/opt/pob
+      - ./.pob-container/applications:/opt/pob
     restart: unless-stopped
-
-volumes:
-  pob-applications:
