@@ -13,8 +13,7 @@ marker=/config/.pob-xfce-clean-state-v1
 if [[ ! -e "${marker}" ]]; then
     rm -rf "${xfce_directory}"
     mkdir -p "${panel_directory}"
-    sed 's/value="applicationsmenu"/value="whiskermenu"/' \
-        /etc/xdg/xfce4/panel/default.xml > "${panel_config}"
+    cp /opt/pob-xfce/xfce4-panel.xml "${panel_config}"
     touch "${marker}"
     chown -R abc:abc "${xfce_directory}" "${marker}"
     echo "[pob] Replaced the old XFCE state with a clean Alpine desktop and Whisker application menu."

@@ -1,0 +1,28 @@
+#!/usr/bin/with-contenv bash
+set -euo pipefail
+
+panel_directory=/config/.config/xfce4/xfconf/xfce-perchannel-xml
+panel_config="${panel_directory}/xfce4-panel.xml"
+launcher_root=/config/.config/xfce4/panel
+marker=/config/.pob-panel-launchers-v1
+
+# Keep dedicated launch buttons on both panel edges. This applies once to the
+# clean desktop and leaves later user panel customisation untouched.
+if [[ ! -e "${marker}" ]]; then
+    mkdir -p "${panel_directory}" "${launcher_root}"
+    for launcher_id in 11 13; do
+        mkdir -p "${launcher_root}/launcher-${launcher_id}"
+        cp /usr/share/applications/path-of-building-poe1.desktop \
+            "${launcher_root}/launcher-${launcher_id}/path-of-building-poe1.desktop"
+    done
+    for launcher_id in 12 14; do
+        mkdir -p "${launcher_root}/launcher-${launcher_id}"
+        cp /usr/share/applications/path-of-building-poe2.desktop \
+            "${launcher_root}/launcher-${launcher_id}/path-of-building-poe2.desktop"
+    done
+
+    cp /opt/pob-xfce/xfce4-panel.xml "${panel_config}"
+    touch "${marker}"
+    chown -R abc:abc "${launcher_root}" "${panel_config}" "${marker}"
+    echo "[pob] Added PoE 1 and PoE 2 launchers to the top and bottom XFCE panels."
+fi
