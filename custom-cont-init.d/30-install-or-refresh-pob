@@ -1,0 +1,37 @@
+#!/usr/bin/with-contenv bash
+set -euo pipefail
+
+install_or_refresh() {
+    local game="$1"
+    local source_dir="/opt/pob-seed/${game}"
+    local target_dir="/opt/pob/${game}"
+    local source_version target_version
+
+    source_version="$(<"${source_dir}/.pob-image-version")"
+    target_version=""
+    if [[ -f "${target_dir}/.pob-image-version" ]]; then
+        target_version="$(<"${target_dir}/.pob-image-version")"
+    fi
+
+    # The profile directories are outside the application volume. It is therefore
+    # safe to replace only app files when a newly built image has a newer release.
+    if [[ "${source_version}" != "${target_version}" ]]; then
+        echo "[pob] Installing ${game} ${source_version} into the persistent application volume."
+        mkdir -p "${target_dir}"
+        rsync -a --delete --exclude '.pob-image-version' "${source_dir}/" "${target_dir}/"
+        printf '%s\n' "${source_version}" > "${target_dir}/.pob-image-version"
+    else
+        echo "[pob] ${game} ${source_version} is already installed."
+    fi
+
+    chown -R abc:abc "${target_dir}"
+}
+
+mkdir -p /opt/pob /profiles/poe1 /profiles/poe2
+install_or_refresh poe1
+install_or_refresh poe2
+
+# Docker Desktop bind mounts do not always expose host ownership consistently.
+# The desktop user needs write access, but an unsupported host filesystem should
+# not prevent the desktop from starting.
+chown -R abc:abc /profiles || true

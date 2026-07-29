@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Path of Building (PoE 1)
+Comment=Open the Path of Exile 1 build planner
+Exec=/usr/local/bin/pob-launch poe1
+Icon=applications-games
+Categories=Game;Utility;
+Terminal=false
+StartupNotify=true

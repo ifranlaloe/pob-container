@@ -1,0 +1,31 @@
+name: pob-container
+
+services:
+  desktop:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+      pull: true
+      no_cache: true
+    image: pob-container:latest
+    container_name: pob-container
+    ports:
+      - "6902:3000"
+    shm_size: "2gb"
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: "Europe/Amsterdam"
+      TITLE: "Path of Building Desktop"
+    volumes:
+      # Linux desktop state and Wine prefix.
+      - ./config:/config
+      # Host-visible, persistent PoB settings and saved build profiles.
+      - ./profiles:/profiles
+      # PoB application files and in-app updates survive container replacement.
+      - pob-applications:/opt/pob
+    restart: unless-stopped
+
+volumes:
+  pob-applications:

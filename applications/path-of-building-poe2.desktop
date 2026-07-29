@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Path of Building (PoE 2)
+Comment=Open the Path of Exile 2 build planner
+Exec=/usr/local/bin/pob-launch poe2
+Icon=applications-games
+Categories=Game;Utility;
+Terminal=false
+StartupNotify=true

@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+update_game() {
+    local game="$1"
+    local repository asset_name application_directory
+    local release_json version download_url staging_directory
+
+    case "${game}" in
+        poe1)
+            repository='PathOfBuildingCommunity/PathOfBuilding'
+            asset_name='PathOfBuildingCommunity-Portable.zip'
+            ;;
+        poe2)
+            repository='PathOfBuildingCommunity/PathOfBuilding-PoE2'
+            asset_name='PathOfBuildingCommunity-PoE2-Portable.zip'
+            ;;
+        *)
+            echo "Unknown Path of Building edition: ${game}" >&2
+            return 64
+            ;;
+    esac
+
+    application_directory="/opt/pob/${game}"
+    release_json="$(curl --fail --location --silent --show-error "https://api.github.com/repos/${repository}/releases/latest")"
+    version="$(jq --raw-output '.tag_name' <<<"${release_json}")"
+    download_url="$(jq --raw-output --arg asset "${asset_name}" '.assets[] | select(.name == $asset) | .browser_download_url' <<<"${release_json}")"
+    test -n "${version}" && test "${version}" != "null"
+    test -n "${download_url}" && test "${download_url}" != "null"
+
+    staging_directory="$(mktemp -d)"
+    trap 'rm -rf "${staging_directory}"' RETURN
+    curl --fail --location --silent --show-error "${download_url}" --output "${staging_directory}/release.zip"
+    unzip -q "${staging_directory}/release.zip" -d "${staging_directory}/application"
+
+    mkdir -p "${application_directory}"
+    rsync -a --delete --exclude '.pob-image-version' "${staging_directory}/application/" "${application_directory}/"
+    printf '%s\n' "${version}" > "${application_directory}/.pob-image-version"
+    echo "Updated ${game} to ${version}."
+}
+
+case "${1:-all}" in
+    poe1|poe2)
+        update_game "$1"
+        ;;
+    all)
+        update_game poe1
+        update_game poe2
+        ;;
+    *)
+        echo "Usage: pob-update [poe1|poe2|all]" >&2
+        exit 64
+        ;;
+esac

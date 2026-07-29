@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+game="${1:?Usage: pob-launch <poe1|poe2>}"
+
+case "${game}" in
+    poe1)
+        executable='Path of Building.exe'
+        windows_profile_directory='Path of Building'
+        ;;
+    poe2)
+        executable='Path of Building-PoE2.exe'
+        windows_profile_directory='Path of Building (PoE2)'
+        ;;
+    *)
+        echo "Unknown Path of Building edition: ${game}" >&2
+        exit 64
+        ;;
+esac
+
+application_directory="/opt/pob/${game}"
+profile_directory="/profiles/${game}"
+wine_prefix="/config/wine"
+
+if [[ ! -f "${application_directory}/${executable}" ]]; then
+    echo "${game} is not installed yet. Wait for the container start-up to finish." >&2
+    exit 1
+fi
+
+export WINEPREFIX="${wine_prefix}"
+export WINEARCH=win64
+export WINEDEBUG=-all
+
+mkdir -p "${profile_directory}"
+if [[ ! -d "${wine_prefix}/drive_c" ]]; then
+    wine64 wineboot.exe --init
+fi
+
+windows_user_directory="${wine_prefix}/drive_c/users/${USER:-abc}"
+if [[ ! -d "${windows_user_directory}" ]]; then
+    windows_user_directory="$(find "${wine_prefix}/drive_c/users" -mindepth 1 -maxdepth 1 -type d ! -name Public ! -name Default -print -quit)"
+fi
+
+if [[ -z "${windows_user_directory}" || ! -d "${windows_user_directory}" ]]; then
+    echo "Wine did not create a user profile." >&2
+    exit 1
+fi
+
+appdata_directory="${windows_user_directory}/AppData/Roaming"
+profile_link="${appdata_directory}/${windows_profile_directory}"
+mkdir -p "${appdata_directory}"
+
+# Migrate any profile written before the profile mount was configured, then make
+# Windows' AppData path point at the host-visible profiles directory.
+if [[ -d "${profile_link}" && ! -L "${profile_link}" ]]; then
+    rsync -a "${profile_link}/" "${profile_directory}/"
+    rm -rf "${profile_link}"
+fi
+ln -sfnT "${profile_directory}" "${profile_link}"
+
+cd "${application_directory}"
+exec wine64 "${application_directory}/${executable}"
