@@ -27,15 +27,15 @@ PoB's Windows AppData folders are linked to `~/.pob-container/profiles`, so savi
 
 ## Alpine compatibility
 
-Wine Mono is bundled in the image and installed silently into the persistent Wine prefix on the first PoB launch, so Wine does not show its Mono installer prompt. On the first Alpine start, the container replaces a desktop configuration inherited from another Webtop base with a clean Alpine XFCE state that uses the Whisker application menu. Wine, PoB, and saved profiles are not reset.
+Wine Mono is bundled in the image and installed silently into the persistent Wine prefix on the first PoB launch, so Wine does not show its Mono installer prompt. On the first Alpine start, the container resets only an inherited XFCE configuration and uses Webtop's standard Alpine panel and dock. Wine, PoB, and saved profiles are not reset.
 
-The clean desktop adds direct PoE 1 and PoE 2 launchers to both the top panel and a compact bottom panel.
+PoE 1 and PoE 2 are regular desktop applications and are preconfigured as favorites in the Whisker menu. They also appear under **Games** and can be found by typing `Path of Building` in its search box.
 
 ## Customize the desktop
 
-The desktop is intentionally yours to customize. Right-click an empty area of either XFCE panel to open **Panel Preferences** or **Add New Items**; right-click a launcher to edit, move, or remove it. The Whisker menu can be configured from its own right-click menu.
+The desktop is intentionally yours to customize. Right-click an empty area of the XFCE panel to open **Panel Preferences** or **Add New Items**. The Whisker menu can be configured from its own right-click menu.
 
-All of these changes are saved in `~/.pob-container/config` and survive restarts, rebuilds, and image upgrades. The container seeds the PoB launchers only once, then leaves your panel and menu layout untouched.
+All of these changes are saved in `~/.pob-container/config` and survive restarts, rebuilds, and image upgrades. The container configures the standard Alpine panel only once, then leaves your panel and menu layout untouched.
 
 ## Update PoB
 

@@ -1,0 +1,33 @@
+#!/usr/bin/with-contenv bash
+set -euo pipefail
+
+xfce_directory=/config/.config/xfce4
+panel_directory="${xfce_directory}/xfconf/xfce-perchannel-xml"
+panel_config="${panel_directory}/xfce4-panel.xml"
+marker=/config/.pob-alpine-xfce-v3
+
+# Start from Webtop's stock Alpine XFCE layout. The default applications-menu
+# plugin is unreliable in the browser desktop, so replace only that plugin
+# with Whisker and pin both PoB desktop applications as its menu favorites.
+if [[ ! -e "${marker}" ]]; then
+    rm -rf "${xfce_directory}"
+    mkdir -p "${panel_directory}"
+    awk '
+        /name="plugin-1" type="string" value="applicationsmenu"/ {
+            print "    <property name=\"plugin-1\" type=\"string\" value=\"whiskermenu\">"
+            print "      <property name=\"favorites\" type=\"array\">"
+            print "        <value type=\"string\" value=\"path-of-building-poe1.desktop\"/>"
+            print "        <value type=\"string\" value=\"path-of-building-poe2.desktop\"/>"
+            print "      </property>"
+            print "    </property>"
+            next
+        }
+        { print }
+    ' /etc/xdg/xfce4/panel/default.xml > "${panel_config}"
+    grep -q 'value="whiskermenu"' "${panel_config}"
+    grep -q 'path-of-building-poe1.desktop' "${panel_config}"
+    grep -q 'path-of-building-poe2.desktop' "${panel_config}"
+    touch "${marker}"
+    chown -R abc:abc "${xfce_directory}" "${marker}"
+    echo "[pob] Created the stock Alpine XFCE desktop with PoB Whisker-menu favorites."
+fi
