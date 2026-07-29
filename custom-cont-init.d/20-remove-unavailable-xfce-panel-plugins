@@ -1,0 +1,55 @@
+#!/usr/bin/with-contenv bash
+set -euo pipefail
+
+panel_config=/config/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
+plugin_directory=/usr/lib/xfce4/panel/plugins
+
+remove_plugin() {
+    local plugin_id="$1"
+    local plugin_name="$2"
+    local temporary_config="${panel_config}.updated"
+
+    awk -v plugin_id="${plugin_id}" '
+        $0 ~ "<value type=\"int\" value=\"" plugin_id "\"/>" { next }
+        $0 ~ "<property name=\"plugin-" plugin_id "\" type=\"string\"" {
+            skip = 1
+            depth = 1
+            next
+        }
+        skip {
+            if ($0 ~ /<property/ && $0 !~ /\/>/) {
+                depth++
+            }
+            if ($0 ~ /<\/property>/) {
+                depth--
+                if (depth == 0) {
+                    skip = 0
+                }
+            }
+            next
+        }
+        { print }
+    ' "${panel_config}" > "${temporary_config}"
+    mv "${temporary_config}" "${panel_config}"
+    echo "[pob] Removed unavailable XFCE panel plugin '${plugin_name}'."
+}
+
+# Preserve a user's panel layout when moving between Webtop distributions. Each
+# configured plugin is checked against Alpine's installed panel modules; only
+# unavailable plugins are removed before XFCE starts.
+if [[ -f "${panel_config}" ]]; then
+    backup_created=false
+    while IFS=' ' read -r plugin_id plugin_name; do
+        if [[ ! -f "${plugin_directory}/lib${plugin_name}.so" ]]; then
+            if [[ "${backup_created}" == false ]]; then
+                cp "${panel_config}" "${panel_config}.before-alpine-plugin-migration"
+                backup_created=true
+            fi
+            remove_plugin "${plugin_id}" "${plugin_name}"
+        fi
+    done < <(sed -n 's/.*name="plugin-\([0-9][0-9]*\)" type="string" value="\([^"]*\)".*/\1 \2/p' "${panel_config}")
+
+    if [[ "${backup_created}" == true ]]; then
+        chown abc:abc "${panel_config}" "${panel_config}.before-alpine-plugin-migration"
+    fi
+fi

@@ -36,6 +36,18 @@ if [[ ! -d "${wine_prefix}/drive_c" ]]; then
     wine64 wineboot.exe --init
 fi
 
+# Alpine has no Wine Mono package. Install WineHQ's bundled MSI without a GUI
+# prompt, once per persisted Wine prefix and Mono version.
+mono_marker="${wine_prefix}/.pob-wine-mono-${WINE_MONO_VERSION}-installed"
+if [[ ! -f "${mono_marker}" ]]; then
+    if [[ ! -f "${WINE_MONO_MSI}" ]]; then
+        echo "The bundled Wine Mono installer is missing." >&2
+        exit 1
+    fi
+    wine64 msiexec.exe /i "$(winepath -w "${WINE_MONO_MSI}")" /qn /norestart
+    touch "${mono_marker}"
+fi
+
 windows_user_directory="${wine_prefix}/drive_c/users/${USER:-abc}"
 if [[ ! -d "${windows_user_directory}" ]]; then
     windows_user_directory="$(find "${wine_prefix}/drive_c/users" -mindepth 1 -maxdepth 1 -type d ! -name Public ! -name Default -print -quit)"

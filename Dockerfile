@@ -4,7 +4,9 @@ FROM --platform=linux/amd64 lscr.io/linuxserver/webtop:latest
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ENV POB_SEED_ROOT=/opt/pob-seed \
-    POB_ROOT=/opt/pob
+    POB_ROOT=/opt/pob \
+    WINE_MONO_VERSION=11.0.0 \
+    WINE_MONO_MSI=/opt/wine-mono/wine-mono-11.0.0-x86.msi
 
 # PoB is a 64-bit Windows application. Wine runs it inside the browser-accessible
 # Linux desktop supplied by webtop.
@@ -16,6 +18,15 @@ RUN apk add --no-cache \
         rsync \
         unzip \
         wine
+
+# Alpine does not package Wine Mono. Keep the official WineHQ MSI in the image
+# so each persistent Wine prefix can install it silently on first PoB launch.
+RUN set -eu; \
+    mkdir -p "$(dirname "${WINE_MONO_MSI}")"; \
+    curl --fail --location --silent --show-error \
+        "https://dl.winehq.org/wine/wine-mono/${WINE_MONO_VERSION}/wine-mono-${WINE_MONO_VERSION}-x86.msi" \
+        --output "${WINE_MONO_MSI}"; \
+    test -s "${WINE_MONO_MSI}"
 
 # Download the current portable releases. docker-compose.yml sets build.no_cache
 # so this layer is deliberately re-run on every normal Compose build.
@@ -42,6 +53,7 @@ RUN set -eu; \
     test -f "${POB_SEED_ROOT}/poe2/Path of Building-PoE2.exe"; \
     mkdir -p "${POB_ROOT}"
 
+COPY --chmod=755 custom-cont-init.d/20-remove-unavailable-xfce-panel-plugins /custom-cont-init.d/20-remove-unavailable-xfce-panel-plugins
 COPY --chmod=755 custom-cont-init.d/30-install-or-refresh-pob /custom-cont-init.d/30-install-or-refresh-pob
 COPY --chmod=755 bin/pob-launch bin/pob-update /usr/local/bin/
 COPY applications/path-of-building-poe1.desktop applications/path-of-building-poe2.desktop /usr/share/applications/

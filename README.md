@@ -25,6 +25,10 @@ The first start copies both applications to `~/.pob-container/applications`. Thi
 
 PoB's Windows AppData folders are linked to `~/.pob-container/profiles`, so saving a build from either app writes to a normal host directory. Docker Compose creates the folder automatically on first start. The container follows the Docker host's local timezone.
 
+## Alpine compatibility
+
+Wine Mono is bundled in the image and installed silently into the persistent Wine prefix on the first PoB launch, so Wine does not show its Mono installer prompt. When an existing XFCE configuration comes from a different Webtop base, startup removes only panel plugins that Alpine does not provide and keeps a one-time backup beside `xfce4-panel.xml` in `~/.pob-container/config`.
+
 ## Update PoB
 
 Close the relevant PoB window, then run either command in a terminal inside the desktop:
