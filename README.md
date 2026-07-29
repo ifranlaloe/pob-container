@@ -29,7 +29,9 @@ PoB's Windows AppData folders are linked to `~/.pob-container/profiles`, so savi
 
 Wine Mono is bundled in the image and installed silently into the persistent Wine prefix on the first PoB launch, so Wine does not show its Mono installer prompt. On the first Alpine start, the container resets only an inherited XFCE configuration and uses Webtop's standard Alpine panel and dock. Wine, PoB, and saved profiles are not reset.
 
-PoE 1 and PoE 2 are regular desktop applications and are preconfigured as favorites in the Whisker menu. They also appear under **Games** and can be found by typing `Path of Building` in its search box.
+PoE 1 and PoE 2 are regular desktop applications. They appear under **Games** in the Whisker menu, can be found by typing `Path of Building`, and are the first two shortcuts in the standard bottom dock. Their launcher icons are extracted from each official portable release during the image build.
+
+On Apple Silicon, Docker Desktop runs this amd64 Wine image through Rosetta. The image includes a tiny Alpine compatibility library so XFCE's application scanner works normally there; the Whisker menu and stock dock are not limited to placeholder shortcuts.
 
 ## Customize the desktop
 

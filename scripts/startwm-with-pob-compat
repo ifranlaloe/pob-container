@@ -1,0 +1,8 @@
+#!/bin/bash
+set -euo pipefail
+
+# Webtop sets its own preload libraries immediately before this script starts.
+# Add the GLib/Rosetta compatibility library without dropping those libraries.
+export LD_PRELOAD="/usr/local/lib/libpob-faccessat-compat.so${LD_PRELOAD:+:${LD_PRELOAD}}"
+
+exec /bin/bash /defaults/startwm-webtop.sh "$@"

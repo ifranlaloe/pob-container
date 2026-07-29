@@ -20,6 +20,19 @@ RUN apk add --no-cache \
         wine \
         xfce4-whiskermenu-plugin
 
+# Docker Desktop uses Rosetta to run this amd64 image on Apple Silicon. Recent
+# musl uses a faccessat2 variant unavailable through that layer, which prevents
+# GLib (and therefore XFCE) from discovering any desktop applications.
+COPY compat/faccessat.c /tmp/faccessat.c
+RUN set -eu; \
+    apk add --no-cache --virtual .pob-build-deps build-base; \
+    cc -shared -fPIC -O2 -Wall -Wextra -o /usr/local/lib/libpob-faccessat-compat.so /tmp/faccessat.c -ldl; \
+    apk del .pob-build-deps; \
+    rm -f /tmp/faccessat.c; \
+    mv /defaults/startwm.sh /defaults/startwm-webtop.sh
+
+COPY --chmod=755 scripts/startwm-with-pob-compat /defaults/startwm.sh
+
 # Alpine does not package Wine Mono. Keep the official WineHQ MSI in the image
 # so each persistent Wine prefix can install it silently on first PoB launch.
 RUN set -eu; \
@@ -32,6 +45,7 @@ RUN set -eu; \
 # Download the current portable releases. docker-compose.yml sets build.no_cache
 # so this layer is deliberately re-run on every normal Compose build.
 RUN set -eu; \
+    apk add --no-cache --virtual .pob-icon-tools icoutils; \
     fetch_release() { \
         local repository="$1"; \
         local asset_name="$2"; \
@@ -48,10 +62,26 @@ RUN set -eu; \
         printf '%s\n' "${version}" > "${destination}/.pob-image-version"; \
         rm -f /tmp/pob-release.zip; \
     }; \
+    extract_icon() { \
+        local executable="$1"; \
+        local icon_name="$2"; \
+        local icon_directory icon_png; \
+        icon_directory="$(mktemp -d)"; \
+        wrestool -x -t 14 -n 1000 "${executable}" -o "${icon_directory}/application.ico"; \
+        icotool -x --index=4 "${icon_directory}/application.ico" -o "${icon_directory}"; \
+        icon_png="$(find "${icon_directory}" -maxdepth 1 -name 'application_*_256x256x*.png' -print -quit)"; \
+        test -n "${icon_png}"; \
+        install -Dm644 "${icon_png}" "/usr/share/icons/hicolor/256x256/apps/${icon_name}.png"; \
+        rm -rf "${icon_directory}"; \
+    }; \
     fetch_release "PathOfBuildingCommunity/PathOfBuilding" "PathOfBuildingCommunity-Portable.zip" "${POB_SEED_ROOT}/poe1"; \
     fetch_release "PathOfBuildingCommunity/PathOfBuilding-PoE2" "PathOfBuildingCommunity-PoE2-Portable.zip" "${POB_SEED_ROOT}/poe2"; \
     test -f "${POB_SEED_ROOT}/poe1/Path of Building.exe"; \
     test -f "${POB_SEED_ROOT}/poe2/Path of Building-PoE2.exe"; \
+    extract_icon "${POB_SEED_ROOT}/poe1/Path of Building.exe" "path-of-building-poe1"; \
+    extract_icon "${POB_SEED_ROOT}/poe2/Path of Building-PoE2.exe" "path-of-building-poe2"; \
+    gtk-update-icon-cache --force --quiet /usr/share/icons/hicolor; \
+    apk del .pob-icon-tools; \
     mkdir -p "${POB_ROOT}"
 
 COPY --chmod=755 custom-cont-init.d/10-setup-alpine-xfce /custom-cont-init.d/10-setup-alpine-xfce

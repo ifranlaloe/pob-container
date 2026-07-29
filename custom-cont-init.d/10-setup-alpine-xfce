@@ -4,30 +4,49 @@ set -euo pipefail
 xfce_directory=/config/.config/xfce4
 panel_directory="${xfce_directory}/xfconf/xfce-perchannel-xml"
 panel_config="${panel_directory}/xfce4-panel.xml"
-marker=/config/.pob-alpine-xfce-v3
+launcher_directory="${xfce_directory}/panel"
+marker=/config/.pob-alpine-xfce-v5
 
-# Start from Webtop's stock Alpine XFCE layout. The default applications-menu
-# plugin is unreliable in the browser desktop, so replace only that plugin
-# with Whisker and pin both PoB desktop applications as its menu favorites.
+# Start from Webtop's stock Alpine XFCE layout, using Whisker for its
+# application menu. Keep the two PoB launchers in the standard bottom dock.
 if [[ ! -e "${marker}" ]]; then
     rm -rf "${xfce_directory}"
-    mkdir -p "${panel_directory}"
+    mkdir -p "${panel_directory}" "${launcher_directory}/launcher-13" "${launcher_directory}/launcher-14"
+    cp /usr/share/applications/path-of-building-poe1.desktop "${launcher_directory}/launcher-13/pob1.desktop"
+    cp /usr/share/applications/path-of-building-poe2.desktop "${launcher_directory}/launcher-14/pob2.desktop"
     awk '
         /name="plugin-1" type="string" value="applicationsmenu"/ {
-            print "    <property name=\"plugin-1\" type=\"string\" value=\"whiskermenu\">"
-            print "      <property name=\"favorites\" type=\"array\">"
-            print "        <value type=\"string\" value=\"path-of-building-poe1.desktop\"/>"
-            print "        <value type=\"string\" value=\"path-of-building-poe2.desktop\"/>"
-            print "      </property>"
-            print "    </property>"
+            print "    <property name=\"plugin-1\" type=\"string\" value=\"whiskermenu\"/>"
             next
         }
+        /name="plugin-13" type="string" value="launcher"/ {
+            print
+            print "      <property name=\"items\" type=\"array\">"
+            print "        <value type=\"string\" value=\"pob1.desktop\"/>"
+            print "      </property>"
+            skip_launcher = 1
+            next
+        }
+        /name="plugin-14" type="string" value="launcher"/ {
+            print
+            print "      <property name=\"items\" type=\"array\">"
+            print "        <value type=\"string\" value=\"pob2.desktop\"/>"
+            print "      </property>"
+            skip_launcher = 1
+            next
+        }
+        skip_launcher && /^    <\/property>/ {
+            print
+            skip_launcher = 0
+            next
+        }
+        skip_launcher { next }
         { print }
     ' /etc/xdg/xfce4/panel/default.xml > "${panel_config}"
     grep -q 'value="whiskermenu"' "${panel_config}"
-    grep -q 'path-of-building-poe1.desktop' "${panel_config}"
-    grep -q 'path-of-building-poe2.desktop' "${panel_config}"
+    grep -q 'value="pob1.desktop"' "${panel_config}"
+    grep -q 'value="pob2.desktop"' "${panel_config}"
     touch "${marker}"
     chown -R abc:abc "${xfce_directory}" "${marker}"
-    echo "[pob] Created the stock Alpine XFCE desktop with PoB Whisker-menu favorites."
+    echo "[pob] Created the stock Alpine XFCE desktop with PoB menu and dock entries."
 fi
