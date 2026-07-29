@@ -21,9 +21,9 @@ services:
       # Follow the Docker host's local timezone.
       - /etc/localtime:/etc/localtime:ro
       # Linux desktop state and Wine prefix.
-      - ./.pob-container/config:/config
+      - "${HOME}/.pob-container/config:/config"
       # Host-visible, persistent PoB settings and saved build profiles.
-      - ./.pob-container/profiles:/profiles
+      - "${HOME}/.pob-container/profiles:/profiles"
       # PoB application files and in-app updates survive container replacement.
-      - ./.pob-container/applications:/opt/pob
+      - "${HOME}/.pob-container/applications:/opt/pob"
     restart: unless-stopped
