@@ -27,7 +27,7 @@ PoB's Windows AppData folders are linked to `~/.pob-container/profiles`, so savi
 
 ## Alpine compatibility
 
-Wine Mono is bundled in the image and installed silently into the persistent Wine prefix on the first PoB launch, so Wine does not show its Mono installer prompt. When an existing XFCE configuration comes from a different Webtop base, startup removes only panel plugins that Alpine does not provide and keeps a one-time backup beside `xfce4-panel.xml` in `~/.pob-container/config`.
+Wine Mono is bundled in the image and installed silently into the persistent Wine prefix on the first PoB launch, so Wine does not show its Mono installer prompt. On the first Alpine start, the container replaces a desktop configuration inherited from another Webtop base with a clean Alpine XFCE state that uses the Whisker application menu. Wine, PoB, and saved profiles are not reset.
 
 ## Update PoB
 

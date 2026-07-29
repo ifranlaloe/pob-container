@@ -17,7 +17,8 @@ RUN apk add --no-cache \
         jq \
         rsync \
         unzip \
-        wine
+        wine \
+        xfce4-whiskermenu-plugin
 
 # Alpine does not package Wine Mono. Keep the official WineHQ MSI in the image
 # so each persistent Wine prefix can install it silently on first PoB launch.
@@ -53,6 +54,7 @@ RUN set -eu; \
     test -f "${POB_SEED_ROOT}/poe2/Path of Building-PoE2.exe"; \
     mkdir -p "${POB_ROOT}"
 
+COPY --chmod=755 custom-cont-init.d/10-reset-xfce-state /custom-cont-init.d/10-reset-xfce-state
 COPY --chmod=755 custom-cont-init.d/20-remove-unavailable-xfce-panel-plugins /custom-cont-init.d/20-remove-unavailable-xfce-panel-plugins
 COPY --chmod=755 custom-cont-init.d/30-install-or-refresh-pob /custom-cont-init.d/30-install-or-refresh-pob
 COPY --chmod=755 bin/pob-launch bin/pob-update /usr/local/bin/
