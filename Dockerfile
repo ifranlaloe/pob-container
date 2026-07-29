@@ -55,6 +55,6 @@ RUN set -eu; \
     mkdir -p "${POB_ROOT}"
 
 COPY --chmod=755 custom-cont-init.d/10-setup-alpine-xfce /custom-cont-init.d/10-setup-alpine-xfce
-COPY --chmod=755 custom-cont-init.d/30-install-or-refresh-pob /custom-cont-init.d/30-install-or-refresh-pob
+COPY --chmod=755 custom-cont-init.d/20-install-or-refresh-pob /custom-cont-init.d/20-install-or-refresh-pob
 COPY --chmod=755 bin/pob-launch bin/pob-update /usr/local/bin/
 COPY applications/path-of-building-poe1.desktop applications/path-of-building-poe2.desktop /usr/share/applications/
