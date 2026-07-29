@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-FROM --platform=linux/amd64 lscr.io/linuxserver/webtop:ubuntu-xfce
+FROM --platform=linux/amd64 lscr.io/linuxserver/webtop:latest
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -8,16 +8,14 @@ ENV POB_SEED_ROOT=/opt/pob-seed \
 
 # PoB is a 64-bit Windows application. Wine runs it inside the browser-accessible
 # Linux desktop supplied by webtop.
-RUN apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apk add --no-cache \
+        bash \
         ca-certificates \
         curl \
         jq \
         rsync \
         unzip \
-        wine64 \
-        winbind \
-    && rm -rf /var/lib/apt/lists/*
+        wine
 
 # Download the current portable releases. docker-compose.yml sets build.no_cache
 # so this layer is deliberately re-run on every normal Compose build.

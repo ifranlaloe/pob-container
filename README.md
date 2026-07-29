@@ -1,6 +1,6 @@
 # PoB Container
 
-A browser-accessible Linux desktop with the current official portable releases of Path of Building Community for Path of Exile 1 and Path of Exile 2.
+A browser-accessible Alpine Linux desktop with the current official portable releases of Path of Building Community for Path of Exile 1 and Path of Exile 2.
 
 The desktop is intentionally `linux/amd64`, which lets Wine run PoB's Windows executables on Apple Silicon through Docker's emulation support.
 
