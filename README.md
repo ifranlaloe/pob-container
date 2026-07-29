@@ -10,7 +10,7 @@ The desktop is intentionally `linux/amd64`, which lets Wine run PoB's Windows ex
 docker compose up --build -d
 ```
 
-Open [http://localhost:6902/](http://localhost:6902/) and use either **Path of Building (PoE 1)** or **Path of Building (PoE 2)** from the desktop application menu.
+Open [http://localhost:7633/](http://localhost:7633/) and use either **Path of Building (PoE 1)** or **Path of Building (PoE 2)** from the desktop application menu.
 
 The first start copies both applications to `~/.pob-container/applications`. This can take a moment.
 

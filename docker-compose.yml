@@ -11,7 +11,7 @@ services:
     image: pob-container:latest
     container_name: pob-container
     ports:
-      - "6902:3000"
+      - "7633:3000"
     shm_size: "2gb"
     environment:
       PUID: "1000"
